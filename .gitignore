@@ -122,7 +122,5 @@ dmypy.json
 .pyre/
 .idea
 
-tests/test_outputs/
-test_chunks.csv
-reports/
-images/
+blah
+dataset
