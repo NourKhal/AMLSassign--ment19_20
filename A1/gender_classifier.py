@@ -12,8 +12,11 @@ def transform_images_to_features_data(csv_file_path, gender_column_index, image_
 
     X, y = l2.extract_features_labels(csv_file_path, gender_column_index, image_dir, face_landmarks_path)
     Y = np.array([y, -(y - 1)]).T
-    tr_X, te_X, tr_Y, te_Y = train_test_split(X, Y, train_size=0.8)
-    return tr_X, tr_Y, te_X, te_Y
+    return X, Y
+
+
+def split_training_test_data(X, Y):
+    return train_test_split(X, Y, train_size=0.8)
 
 # sklearn functions implementation
 
@@ -55,7 +58,6 @@ if __name__ == '__main__': ## command J
                                                                    labels_file,
                                                                    landmarks_file,
                                                                    gender_index))
-
-    tr_X, tr_Y, te_X, te_Y = transform_images_to_features_data(labels_file, gender_index, image_directory, landmarks_file)
-
+    X, Y = transform_images_to_features_data(labels_file, gender_index, image_directory, landmarks_file)
+    tr_X, te_X, tr_Y, te_Y = split_training_test_data(X, Y)
     pred = img_SVM(tr_X.reshape((3840, 68*2)), list(zip(*tr_Y))[0], te_X.reshape((960, 68*2)), list(zip(*te_Y))[0])
