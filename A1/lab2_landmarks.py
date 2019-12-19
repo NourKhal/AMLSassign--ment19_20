@@ -6,16 +6,6 @@ import numpy as np
 from tensorflow.keras.preprocessing import image
 
 
-# PATH TO ALL IMAGES
-# global basedir, image_paths, target_size
-# basedir = './dataset'
-# images_dir = os.path.join(basedir,'celeba')
-# labels_filename = 'labels.csv'
-# face_landmarks = '/Users/nour.khaled/PycharmProjects/AMLSassign--ment19_20/A1/shape_predictor_68_face_landmarks.dat'
-
-
-# predictor = dlib.shape_predictor(face_landmarks)
-
 
 # how to find frontal human faces in an image using 68 landmarks.  These are points on the face such as the corners
 #  of the mouth, along the eyebrows, on the eyes, and so forth.
@@ -120,8 +110,18 @@ def extract_features_labels(csv_file_path, gender_column_index, images_dir, face
         print("\tScanning images direcdtory at {}".format(images_dir))
         all_features = []
         all_labels = []
+
+        image_dict = {}
         for img_path in image_paths:
-            file_name= img_path.split('.')[1].split('/')[-1]
+            file_name_and_extension = img_path.split('/')[-1]
+            file_name_without_extension = file_name_and_extension.split('.')[0]
+            image_dict[int(file_name_without_extension)] = img_path
+        image_dict = {k: v for k, v in sorted(image_dict.items(), key=lambda item: item[0])}
+
+        for key, img_path in image_dict.items():
+
+            print("\tReading image at {}".format(img_path))
+            file_name = img_path.split('.')[1].split('/')[-1]
 
             # load image
             img = image.img_to_array(
@@ -137,4 +137,3 @@ def extract_features_labels(csv_file_path, gender_column_index, images_dir, face
     gender_labels = (np.array(all_labels) + 1)/2 # simply converts the -1 into 0, so male=0 and female=1
 
     return landmark_features, gender_labels
-    # return  list(zip(all_features, all_labels))
