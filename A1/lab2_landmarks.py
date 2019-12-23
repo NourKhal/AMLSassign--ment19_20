@@ -4,7 +4,7 @@ import cv2
 import dlib
 import numpy as np
 from tensorflow.keras.preprocessing import image
-
+from tqdm import tqdm
 
 
 # how to find frontal human faces in an image using 68 landmarks.  These are points on the face such as the corners
@@ -118,7 +118,8 @@ def extract_features_labels(csv_file_path, gender_column_index, images_dir, face
             image_dict[int(file_name_without_extension)] = img_path
         image_dict = {k: v for k, v in sorted(image_dict.items(), key=lambda item: item[0])}
 
-        for key, img_path in image_dict.items():
+
+        for key, img_path in tqdm(image_dict.items()):
 
             print("\tReading image at {}".format(img_path))
             file_name = img_path.split('.')[1].split('/')[-1]
