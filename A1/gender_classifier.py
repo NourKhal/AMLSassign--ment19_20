@@ -4,6 +4,9 @@ import numpy as np
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
+import pickle
+import tqdm
+import matplotlib.pyplot as plt
 
 import A1.lab2_landmarks as l2
 
@@ -59,5 +62,16 @@ if __name__ == '__main__': ## command J
                                                                    landmarks_file,
                                                                    gender_index))
     X, Y = transform_images_to_features_data(labels_file, gender_index, image_directory, landmarks_file)
+    x_y = list(zip(X, Y))
+
+    pickled = (X, Y)
+    filename = 'preprocessed_data1.pickle'
+    #
+    with open(filename, 'wb') as f:
+        pickle.dump(pickled, f)
+
+    with open(filename, 'rb') as f:
+        X, Y = pickle.load(f)
+
     tr_X, te_X, tr_Y, te_Y = split_training_test_data(X, Y)
     pred = img_SVM(tr_X.reshape((3840, 68*2)), list(zip(*tr_Y))[0], te_X.reshape((960, 68*2)), list(zip(*te_Y))[0])
