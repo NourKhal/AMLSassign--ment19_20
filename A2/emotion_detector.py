@@ -50,11 +50,16 @@ if __name__ == '__main__':
                                                                            emotion_index,
                                                                            preprocessed_data_file))
 
-    X, Y = transform_images_to_features_data(labels_file, emotion_index, image_directory, landmarks_file)
-    x_y = list(zip(X, Y))
+    # X, Y = transform_images_to_features_data(labels_file, emotion_index, image_directory, landmarks_file)
+    # x_y = list(zip(X, Y))
 
-    pickled = (X, Y)
+    # pickled = (X, Y)
     filename = preprocessed_data_file
 
-    with open(filename, 'wb') as f:
-        pickle.dump(pickled, f)
+    # with open(filename, 'wb') as f:
+    #     pickle.dump(pickled, f)
+
+    with open(filename, 'rb') as f:
+        X, Y = pickle.load(f)
+
+    
