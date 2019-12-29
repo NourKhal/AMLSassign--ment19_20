@@ -82,19 +82,29 @@ def loss_and_optimiser(learning_rate, training_epochs, display_accuracy_step, lo
 
     init = tf.global_variables_initializer()
 
+    epoch_cost_plot = []
+    cost = []
+    epoch_validation_plot = []
+    validation = []
     with tf.Session() as sess:
 
         sess.run(init)
         for epoch in range(training_epochs):
             _, cost = sess.run([train_op, loss_op], feed_dict={X: training_images,
                                                                Y: training_labels})
+            epoch_cost_plot.append(epoch+1)
+            cost.append(cost)
+
             print("Epoch:", '%04d' % (epoch + 1), "cost={:.9f}".format(cost))
 
             if epoch % display_accuracy_step == 0:
                 pred = tf.nn.softmax(logits)
                 correct_prediction = tf.equal(tf.argmax(pred, 1), tf.argmax(Y, 1))
                 accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
-                print("Accuracy: {:.3f}".format(accuracy.eval({X: training_images, Y: training_labels})))
+                current_accuracy = accuracy.eval({X: training_images, Y: training_labels})
+                epoch_validation_plot.append(epoch)
+                validation.append( current_accuracy* 100)
+                print("Training Accuracy: {:.3f}".format(accuracy.eval({X: training_images, Y: training_labels})))
 
         print("Optimization Task Completed!")
         pred = tf.nn.softmax(logits)
@@ -103,7 +113,19 @@ def loss_and_optimiser(learning_rate, training_epochs, display_accuracy_step, lo
 
         print("Validation Accuracy:", accuracy.eval({X: test_images, Y: test_labels}))
 
+        # Plot results
+        plt.figure(1)
+        plt.subplot(211)
+        plt.plot(epoch_cost_plot, cost)
+        plt.xlabel('Epoch')
+        plt.ylabel('Cost/Error')
+        plt.axis([0, epoch_cost_plot[-1], 0, 1])
 
+        plt.subplot(212)
+        plt.plot(epoch_validation_plot, validation)
+        plt.xlabel('Epoch')
+        plt.ylabel('Accuracy (%)')
+        plt.show()
 
 
 if __name__ == '__main__':
