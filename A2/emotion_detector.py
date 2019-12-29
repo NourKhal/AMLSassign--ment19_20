@@ -1,13 +1,13 @@
 import argparse
 import pickle
 
-import A1.lab2_landmarks as l2
 import numpy as np
-import tensorflow as tf
+import tensorflow as tf1
+import tensorflow.compat.v1 as tf
 from sklearn.model_selection import train_test_split
+import matplotlib.pyplot as plt
 
-
-# tf.disable_v2_behavior()
+import A1.lab2_landmarks as l2
 
 
 def transform_images_to_features_data(csv_file_path, smiling_column_index, image_dir, face_landmarks_path):
@@ -23,17 +23,25 @@ def split_train_test_data(x, y, testsize):
 
 def allocate_weights_and_biases(stddev, neurons_layer1, neurons_layer2):
 
-    X = tf.placeholder("float", [None, 68, 2])
-    Y = tf.placeholder("float", [None, 2])  # 2 output classes
+    ## Set the input data as placeholders to be used later when building the computational graph
+    # i.e create a place in memory to store the value later on
+    X = tf.placeholder("float", [None, 68, 2]) # 68 coordinates of X and Y pairs as the input
+    Y = tf.placeholder("float", [None, 2]) # 2 ouputs since we have binary classification (0 or 1)
 
-    images_flat = tf.contrib.layers.flatten(X)
+    # Reshape the image matrix features into one vector
+    images_flat = tf1.contrib.layers.flatten(X)
 
+    ## Initialise and set the weights of the different layers of the MLP
+    # stddev is the standard deviation of the normal distribution
     weights = {
-        'hidden_layer1': tf.Variable(tf.random_normal([68 * 2, neurons_layer1], stddev=stddev)),
+        'hidden_layer1': tf.Variable(tf.random_normal([68 * 2, neurons_layer1], stddev=stddev)), # this will return a
+        # tensor of the specified shape '[68 * 2, neurons_layer1]' filled with random normal values. Similarly, for
+        # 'hidden_layer2' and 'out'
         'hidden_layer2': tf.Variable(tf.random_normal([neurons_layer1, neurons_layer2], stddev=stddev)),
         'out': tf.Variable(tf.random_normal([neurons_layer2, 2], stddev=stddev))
     }
 
+    ## Initialise and set the biases of the different layers of the MLP
     biases = {
         'bias_layer1': tf.Variable(tf.random_normal([neurons_layer1], stddev=stddev)),
         'bias_layer2': tf.Variable(tf.random_normal([neurons_layer2], stddev=stddev)),
@@ -43,26 +51,34 @@ def allocate_weights_and_biases(stddev, neurons_layer1, neurons_layer2):
     return weights, biases, X, Y, images_flat
 
 
-def multilayer_perceptron(stddev, neurons_layer1, neurons_layer2):
+def build_multilayer_perceptron(stddev, neurons_layer1, neurons_layer2):
 
     weights, biases, X, Y, images_flat = allocate_weights_and_biases(stddev, neurons_layer1, neurons_layer2)
+
+    # Return a tensor of the sum of weighted matrix and the biases of the first layer
     layer_1 = tf.add(tf.matmul(images_flat, weights['hidden_layer1']), biases['bias_layer1'])
     layer_1 = tf.math.sigmoid(layer_1)
 
+    # Return a tensor of the sum of weighted matrix and the biases of the second layer
     layer_2 = tf.add(tf.matmul(layer_1, weights['hidden_layer2']), biases['bias_layer2'])
     layer_2 = tf.math.sigmoid(layer_2)
 
-    out_layer = tf.matmul(layer_2, weights['out']) + biases['out']
+    # Return a tensor of the sum of weighted matrix and the biases of the outer layer (output)
+    out_layer = tf.add(tf.matmul(layer_2, weights['out']), biases['out'])
 
     return out_layer, X, Y
 
 
 def loss_and_optimiser(learning_rate, training_epochs, display_accuracy_step, logits, training_images, training_labels,
-                       test_images, test_labels
-                       ):
+                       test_images, test_labels):
+    """Softmax takes a vector of real-valued arguments and transforms it to a vector whose elements fall in the range (0, 1) and sum to 1
+    i.e measures the probability error in discrete classification tasks in which the classes are mutually exclusive.
+    this function will return a tensor that contains the softmax cross entropy loss"""
+
+    ## The tf.reduce_mean(tensor) will return a reduce tensor with mean of each element in the tensor
     loss_op = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=Y))
     optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
-    train_op = optimizer.minimize(loss_op)
+    train_op = optimizer.minimize(loss_op) #
 
     init = tf.global_variables_initializer()
 
@@ -75,17 +91,17 @@ def loss_and_optimiser(learning_rate, training_epochs, display_accuracy_step, lo
             print("Epoch:", '%04d' % (epoch + 1), "cost={:.9f}".format(cost))
 
             if epoch % display_accuracy_step == 0:
-                pred = tf.nn.softmax(logits)  # Apply softmax to logits
+                pred = tf.nn.softmax(logits)
                 correct_prediction = tf.equal(tf.argmax(pred, 1), tf.argmax(Y, 1))
                 accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
                 print("Accuracy: {:.3f}".format(accuracy.eval({X: training_images, Y: training_labels})))
 
-        print("Optimization Finished!")
+        print("Optimization Task Completed!")
         pred = tf.nn.softmax(logits)
         correct_prediction = tf.equal(tf.argmax(pred, 1), tf.argmax(Y, 1))
         accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
 
-        print("Test Accuracy:", accuracy.eval({X: test_images, Y: test_labels}))
+        print("Validation Accuracy:", accuracy.eval({X: test_images, Y: test_labels}))
 
 
 
@@ -134,4 +150,9 @@ if __name__ == '__main__':
     with open(filename, 'rb') as f:
         X, Y = pickle.load(f)
 
-    
+    X_train, X_test, Y_train, Y_test = split_train_test_data(X, Y, testsize=0.3)
+    X_test, X_val, Y_test, Y_val = split_train_test_data(X_test, Y_test, testsize=0.5)
+
+    logits, X, Y = build_multilayer_perceptron(0.01, 100, 100)
+    loss_and_optimiser(0.001, 500, 2, logits, X_train, Y_train, X_val, Y_val)
+
