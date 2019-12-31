@@ -109,15 +109,8 @@ if __name__ == '__main__':
 
     filename = preprocessed_data_file
 
-    with open(filename, 'rb') as f:
-        X, Y = pickle.load(f)
-
-    X_train, X_test, Y_train, Y_test = split_train_test_data(X, Y, testsize=0.3)
-    X_test, X_val, Y_test, Y_val = split_train_test_data(X_test, Y_test, testsize=0.5)
-
-    pickled_train = (X_train, Y_train)
-    pickled_val = (X_val, Y_val)
-    pickled_test = (X_test, Y_test)
+    # with open(filename, 'rb') as f:
+    #     X, Y = pickle.load(f)
 
     filename_train = 'face_shape_pickled_train'
     with open(filename_train, 'rb') as f:
@@ -131,3 +124,5 @@ if __name__ == '__main__':
     with open(filename_test, 'rb') as f:
         X_test, Y_test = pickle.load(f)
 
+    weights, biases, X, Y = allocate_weights_and_biases(5)
+    pred = conv_net(X_train, weights, biases)
