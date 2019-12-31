@@ -22,6 +22,7 @@ def transform_images_to_features_data(csv_file_path, smiling_column_index, image
 def split_train_test_data(x, y, testsize):
     return train_test_split(x, y, test_size=testsize)
 
+
 def allocate_weights_and_biases(n_classes):
     X = tf.placeholder("float", [None, 68, 2]) # 68 coordinates of X and Y pairs as the input
     Y = tf.placeholder("float", [None, 5])
@@ -42,6 +43,18 @@ def allocate_weights_and_biases(n_classes):
     }
 
     return weights, biases, X, Y
+
+
+def conv2d(x, W, b, strides=1):
+    # Conv2D wrapper, with bias and relu activation
+    x = tf.nn.conv2d(X, W, strides=[1, strides, strides, 1], padding='SAME')
+    x = tf.nn.bias_add(x, b)
+    return tf.nn.relu(x)
+
+
+def maxpool2d(x, k=2):
+    return tf.nn.max_pool(x, ksize=[1, k, k, 1], strides=[1, k, k, 1],padding='SAME')
+
 
 if __name__ == '__main__':
 
@@ -88,23 +101,14 @@ if __name__ == '__main__':
     pickled_test = (X_test, Y_test)
 
     filename_train = 'face_shape_pickled_train'
-    with open(filename_train, 'wb') as f:
-        pickle.dump(pickled_train, f)
-
     with open(filename_train, 'rb') as f:
         X_train, Y_train = pickle.load(f)
 
     filename_val = 'face_shape_pickled_val'
-    with open(filename_val, 'wb') as f:
-        pickle.dump(pickled_val, f)
-
     with open(filename_val, 'rb') as f:
         X_val, Y_val = pickle.load(f)
 
     filename_test = 'face_shape_pickled_test'
-    with open(filename_test, 'wb') as f:
-        pickle.dump(pickled_test, f)
-
     with open(filename_test, 'rb') as f:
         X_test, Y_test = pickle.load(f)
 
