@@ -18,6 +18,8 @@ def transform_images_to_features_data(csv_file_path, smiling_column_index, image
     Y = np.array([y, -(y - 1)]).T
     return X, Y
 
+def split_train_test_data(x, y, testsize):
+    return train_test_split(x, y, test_size=testsize)
 
 if __name__ == '__main__':
 
@@ -51,16 +53,12 @@ if __name__ == '__main__':
                                                                            face_shape_index,
                                                                            preprocessed_data_file))
 
-    X, Y = transform_images_to_features_data(labels_file, face_shape_index, image_directory, landmarks_file)
-    x_y = list(zip(X, Y))
-
-    pickled = (X, Y)
     filename = preprocessed_data_file
-
-    with open(filename, 'wb') as f:
-        pickle.dump(pickled, f)
 
     with open(filename, 'rb') as f:
         X, Y = pickle.load(f)
+
+    X_train, X_test, Y_train, Y_test = split_train_test_data(X, Y, testsize=0.3)
+    X_test, X_val, Y_test, Y_val = split_train_test_data(X_test, Y_test, testsize=0.5)
 
     
