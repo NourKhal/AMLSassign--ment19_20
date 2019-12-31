@@ -61,4 +61,28 @@ if __name__ == '__main__':
     X_train, X_test, Y_train, Y_test = split_train_test_data(X, Y, testsize=0.3)
     X_test, X_val, Y_test, Y_val = split_train_test_data(X_test, Y_test, testsize=0.5)
 
+    pickled_train = (X_train, Y_train)
+    pickled_val = (X_val, Y_val)
+    pickled_test = (X_test, Y_test)
+
+    filename_train = 'face_shape_pickled_train'
+    with open(filename_train, 'wb') as f:
+        pickle.dump(pickled_train, f)
+
+    with open(filename_train, 'rb') as f:
+        X_train, Y_train = pickle.load(f)
+
+    filename_val = 'face_shape_pickled_val'
+    with open(filename_val, 'wb') as f:
+        pickle.dump(pickled_val, f)
     
+    with open(filename_val, 'rb') as f:
+        X_val, Y_val = pickle.load(f)
+
+    filename_test = 'face_shape_pickled_test'
+    with open(filename_test, 'wb') as f:
+        pickle.dump(pickled_test, f)
+
+    with open(filename_test, 'rb') as f:
+        X_test, Y_test = pickle.load(f)
+
