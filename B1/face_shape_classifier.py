@@ -7,6 +7,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 import A1.lab2_landmarks as l2
 import numpy as np
 import tensorflow.compat.v1 as tf
+import tensorflow as tf1
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 
@@ -20,6 +21,27 @@ def transform_images_to_features_data(csv_file_path, smiling_column_index, image
 
 def split_train_test_data(x, y, testsize):
     return train_test_split(x, y, test_size=testsize)
+
+def allocate_weights_and_biases(n_classes):
+    X = tf.placeholder("float", [None, 68, 2]) # 68 coordinates of X and Y pairs as the input
+    Y = tf.placeholder("float", [None, 5])
+
+    weights = {
+        'wc1': tf.get_variable('w0', shape=(3,3,3,3), initializer=tf1.contrib.layers.xavier_initializer()),
+        'wc2': tf.get_variable('W1', shape=(3,3,96,64), initializer=tf1.contrib.layers.xavier_initializer()),
+        'wc3': tf.get_variable('W2', shape=(3,3,192,128), initializer=tf1.contrib.layers.xavier_initializer()),
+        'wd1': tf.get_variable('W3', shape=(4*4*128,128), initializer=tf1.contrib.layers.xavier_initializer()),
+        'out': tf.get_variable('W6', shape=(128,n_classes), initializer=tf1.contrib.layers.xavier_initializer()),
+    }
+    biases = {
+        'bc1': tf.get_variable('B0', shape=(32), initializer=tf1.contrib.layers.xavier_initializer()),
+        'bc2': tf.get_variable('B1', shape=(64), initializer=tf1.contrib.layers.xavier_initializer()),
+        'bc3': tf.get_variable('B2', shape=(128), initializer=tf1.contrib.layers.xavier_initializer()),
+        'bd1': tf.get_variable('B3', shape=(128), initializer=tf1.contrib.layers.xavier_initializer()),
+        'out': tf.get_variable('B4', shape=(5), initializer=tf1.contrib.layers.xavier_initializer()),
+    }
+
+    return weights, biases, X, Y
 
 if __name__ == '__main__':
 
@@ -75,7 +97,7 @@ if __name__ == '__main__':
     filename_val = 'face_shape_pickled_val'
     with open(filename_val, 'wb') as f:
         pickle.dump(pickled_val, f)
-    
+
     with open(filename_val, 'rb') as f:
         X_val, Y_val = pickle.load(f)
 
