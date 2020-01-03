@@ -3,6 +3,8 @@ import os
 import pickle
 import sys
 
+from sklearn.preprocessing import MultiLabelBinarizer
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import A1.lab2_landmarks as l2
 import numpy as np
@@ -10,22 +12,21 @@ import tensorflow.compat.v1 as tf
 import tensorflow as tf1
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
-
+os.environ["CUDA_VISIBLE_DEVICES"]="0" #for training on gpu
 
 
 def transform_images_to_features_data(csv_file_path, smiling_column_index, image_dir, face_landmarks_path):
-
     X, y = l2.extract_features_labels(csv_file_path, smiling_column_index, image_dir, face_landmarks_path)
-    Y = np.array([y, -(y - 1)]).T
+    Y = np.array([y]).T
+    Y = MultiLabelBinarizer().fit_transform(Y)
     return X, Y
+
 
 def split_train_test_data(x, y, testsize):
     return train_test_split(x, y, test_size=testsize)
 
 
 def allocate_weights_and_biases(n_classes):
-    X = tf.placeholder("float", [None, 68, 2]) # 68 coordinates of X and Y pairs as the input
-    Y = tf.placeholder("float", [None, 5])
 
     weights = {
         'wc1': tf.get_variable('w0', shape=(3,3,3,3), initializer=tf1.contrib.layers.xavier_initializer()),
@@ -107,22 +108,29 @@ if __name__ == '__main__':
                                                                            face_shape_index,
                                                                            preprocessed_data_file))
 
+    X, Y = transform_images_to_features_data(labels_file, face_shape_index, image_directory, landmarks_file)
+    x_y = list(zip(X, Y))
+    pickled = (X, Y)
+
     filename = preprocessed_data_file
+
+    with open(filename, 'wb') as f:
+        pickle.dump(pickled, f)
 
     # with open(filename, 'rb') as f:
     #     X, Y = pickle.load(f)
 
-    filename_train = 'face_shape_pickled_train'
-    with open(filename_train, 'rb') as f:
-        X_train, Y_train = pickle.load(f)
-
-    filename_val = 'face_shape_pickled_val'
-    with open(filename_val, 'rb') as f:
-        X_val, Y_val = pickle.load(f)
-
-    filename_test = 'face_shape_pickled_test'
-    with open(filename_test, 'rb') as f:
-        X_test, Y_test = pickle.load(f)
-
-    weights, biases, X, Y = allocate_weights_and_biases(5)
-    pred = conv_net(X_train, weights, biases)
+    # filename_train = 'face_shape_pickled_train'
+    # with open(filename_train, 'rb') as f:
+    #     X_train, Y_train = pickle.load(f)
+    #
+    # filename_val = 'face_shape_pickled_val'
+    # with open(filename_val, 'rb') as f:
+    #     X_val, Y_val = pickle.load(f)
+    #
+    # filename_test = 'face_shape_pickled_test'
+    # with open(filename_test, 'rb') as f:
+    #     X_test, Y_test = pickle.load(f)
+    #
+    # weights, biases, X, Y = allocate_weights_and_biases(5)
+    # pred = conv_net(X_train, weights, biases)

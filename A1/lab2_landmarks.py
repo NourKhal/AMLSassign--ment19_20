@@ -136,6 +136,6 @@ def extract_features_labels(csv_file_path, gender_column_index, images_dir, face
                 all_labels.append(gender_labels[file_name])
 
     landmark_features = np.array(all_features)
-    gender_labels = (np.array(all_labels) + 1)/2 # simply converts the -1 into 0, so male=0 and female=1
+    gender_labels = np.array(all_labels)  # simply converts the -1 into 0, so male=0 and female=1
 
     return landmark_features, gender_labels
