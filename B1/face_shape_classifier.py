@@ -25,14 +25,20 @@ def transform_images_to_features_data(csv_file_path, smiling_column_index, image
 def split_train_test_data(x, y, testsize):
     return train_test_split(x, y, test_size=testsize)
 
+def set_placeholders():
+    X = tf.placeholder(tf.float32, [None, 68, 2,1]) # 68 coordinates of X and Y pairs as the input
+    Y = tf.placeholder(tf.float32, [None, 5])
+
+    return X, Y
+
 
 def allocate_weights_and_biases(n_classes):
 
     weights = {
-        'wc1': tf.get_variable('w0', shape=(3,3,3,3), initializer=tf1.contrib.layers.xavier_initializer()),
-        'wc2': tf.get_variable('W1', shape=(3,3,96,64), initializer=tf1.contrib.layers.xavier_initializer()),
-        'wc3': tf.get_variable('W2', shape=(3,3,192,128), initializer=tf1.contrib.layers.xavier_initializer()),
-        'wd1': tf.get_variable('W3', shape=(4*4*128,128), initializer=tf1.contrib.layers.xavier_initializer()),
+        'wc1': tf.get_variable('w0', shape=(3,3,1,3), initializer=tf1.contrib.layers.xavier_initializer()),
+        'wc2': tf.get_variable('W1', shape=(3,3,32,64), initializer=tf1.contrib.layers.xavier_initializer()),
+        'wc3': tf.get_variable('W2', shape=(3,3,64,128), initializer=tf1.contrib.layers.xavier_initializer()),
+        'wd1': tf.get_variable('W3', shape=(9*1*128,128), initializer=tf1.contrib.layers.xavier_initializer()),
         'out': tf.get_variable('W6', shape=(128,n_classes), initializer=tf1.contrib.layers.xavier_initializer()),
     }
     biases = {
@@ -43,7 +49,7 @@ def allocate_weights_and_biases(n_classes):
         'out': tf.get_variable('B4', shape=(5), initializer=tf1.contrib.layers.xavier_initializer()),
     }
 
-    return weights, biases, X, Y
+    return weights, biases,
 
 
 def conv2d(x, W, b, strides=1):
@@ -74,6 +80,8 @@ def conv_net(x, weights, biases):
     out = tf.add(tf.matmul(fc1, weights['out']), biases['out'])
 
     return out
+
+
 
 
 if __name__ == '__main__':
