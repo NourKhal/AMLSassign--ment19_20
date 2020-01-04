@@ -6,20 +6,43 @@ import sys
 from sklearn.preprocessing import MultiLabelBinarizer
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-import A1.lab2_landmarks as l2
 import numpy as np
 import tensorflow.compat.v1 as tf
 import tensorflow as tf1
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
+
 os.environ["CUDA_VISIBLE_DEVICES"]="0" #for training on gpu
+from keras.preprocessing import image
+from tqdm import tqdm
 
 
-def transform_images_to_features_data(csv_file_path, smiling_column_index, image_dir, face_landmarks_path):
-    X, y = l2.extract_features_labels(csv_file_path, smiling_column_index, image_dir, face_landmarks_path)
-    Y = np.array([y]).T
-    Y = MultiLabelBinarizer().fit_transform(Y)
-    return X, Y
+def load_images(images_dir, face_shape_index, csv_file_path):
+    image_paths = [os.path.join(images_dir, l) for l in os.listdir(images_dir)]
+    labels_file = open(csv_file_path, 'r')
+    lines = labels_file.readlines()
+    face_shape_labels = {line.split('\t')[0] : int(line.split('\t')[face_shape_index]) for line in lines[1:]}
+    image_dict = {}
+    image_pixels = []
+    labels = []
+    for img_path in image_paths:
+        file_name_and_extension = img_path.split('/')[-1]
+        file_name_without_extension = file_name_and_extension.split('.')[0]
+        image_dict[int(file_name_without_extension)] = img_path
+    image_dict = {k: v for k, v in sorted(image_dict.items(), key=lambda item: item[0])}
+    for key, img_path in tqdm(image_dict.items()):
+        file_name = img_path.split('.')[1].split('/')[-1]
+        img = image.img_to_array(
+            image.load_img(img_path,
+                           target_size=None))
+        if img is not None:
+            image_pixels.append(img)
+            labels.append(face_shape_labels[file_name])
+    image_pixels = np.array(image_pixels)
+    labels = np.array(labels)
+    labels = np.array([labels]).T
+    labels = MultiLabelBinarizer().fit_transform(labels)
+    return image_pixels, labels
 
 
 def split_train_test_data(x, y, testsize):
@@ -174,9 +197,7 @@ if __name__ == '__main__':
                                                                            face_shape_index,
                                                                            preprocessed_data_file))
 
-    # X, Y = transform_images_to_features_data(labels_file, face_shape_index, image_directory, landmarks_file)
-    # x_y = list(zip(X, Y))
-    # pickled = (X, Y)
+    images, labels = load_images(image_directory, face_shape_index, labels_file)
 
     filename = preprocessed_data_file
 
@@ -193,16 +214,8 @@ if __name__ == '__main__':
     # pickled_val = (X_val, Y_val)
     # pickled_test = (X_test, Y_test)
 
-    filename_train = 'face_shape_pickled_train'
-    # with open(filename_train, 'wb') as f:
-    #     pickle.dump(pickled_train, f)
 
-    with open(filename_train, 'rb') as f:
-        X_train, Y_train = pickle.load(f)
 
-    filename_val = 'face_shape_pickled_val'
-    # with open(filename_val, 'wb') as f:
-    #     pickle.dump(pickled_val, f)
 
     with open(filename_val, 'rb') as f:
         X_val, Y_val = pickle.load(f)
