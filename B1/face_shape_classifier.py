@@ -35,7 +35,7 @@ def set_placeholders():
 def allocate_weights_and_biases(n_classes):
 
     weights = {
-        'wc1': tf.get_variable('w0', shape=(3,3,1,3), initializer=tf1.contrib.layers.xavier_initializer()),
+        'wc1': tf.get_variable('w0', shape=(3,3,1,32), initializer=tf1.contrib.layers.xavier_initializer()),
         'wc2': tf.get_variable('W1', shape=(3,3,32,64), initializer=tf1.contrib.layers.xavier_initializer()),
         'wc3': tf.get_variable('W2', shape=(3,3,64,128), initializer=tf1.contrib.layers.xavier_initializer()),
         'wd1': tf.get_variable('W3', shape=(9*1*128,128), initializer=tf1.contrib.layers.xavier_initializer()),
@@ -49,12 +49,12 @@ def allocate_weights_and_biases(n_classes):
         'out': tf.get_variable('B4', shape=(5), initializer=tf1.contrib.layers.xavier_initializer()),
     }
 
-    return weights, biases,
+    return weights, biases
 
 
 def conv2d(x, W, b, strides=1):
     # Conv2D wrapper, with bias and relu activation
-    x = tf.nn.conv2d(X, W, strides=[1, strides, strides, 1], padding='SAME')
+    x = tf.nn.conv2d(x, W, strides=[1, strides, strides, 1], padding='SAME')
     x = tf.nn.bias_add(x, b)
     return tf.nn.relu(x)
 
@@ -81,6 +81,64 @@ def conv_net(x, weights, biases):
 
     return out
 
+def loss_and_optimiser(learning_rate, batch_size, epochs, training_images, training_labels,
+                       test_images, test_labels, out, X, Y):
+
+    cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=out, labels=Y))
+    optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)
+
+    # Check whether the index of the maximum value of the predicted image is equal to the actual
+    # labelled image and both will be a column vector.
+    correct_prediction = tf.equal(tf.argmax(out, 1), tf.argmax(Y, 1))
+
+    # Calculate accuracy across all the given images and average them out.
+    accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+
+    init = tf.global_variables_initializer()
+
+    with tf.Session() as sess:
+        sess.run(init)
+        train_loss = []
+        test_loss = []
+        train_accuracy = []
+        test_accuracy = []
+        summary_writer = tf.summary.FileWriter('./Output', sess.graph)
+        for i in range(epochs):
+            for batch in range(len(training_images)//batch_size):
+                batch_x = training_images[batch*batch_size:min((batch+1)*batch_size,len(training_images))]
+                batch_y = training_labels[batch*batch_size:min((batch+1)*batch_size,len(training_labels))]
+                # Run optimization op (backprop).
+                # Calculate batch loss and accuracy
+                opt = sess.run(optimizer, feed_dict={X: batch_x, Y: batch_y})
+                loss, acc = sess.run([cost, accuracy], feed_dict={X: batch_x, Y: batch_y})
+                print("Iter " + str(i) + ", Loss= " + "{:.6f}".format(loss) + ", Training Accuracy= " + "{:.5f}".format(acc))
+                print("Optimization Finished!")
+
+                test_acc,valid_loss = sess.run([accuracy,cost], feed_dict={X: test_images, Y: test_labels})
+                train_loss.append(loss)
+                test_loss.append(valid_loss)
+                train_accuracy.append(acc)
+                test_accuracy.append(test_acc)
+                print("Validation Accuracy:","{:.5f}".format(test_acc))
+    summary_writer.close()
+
+    plt.plot(range(len(train_loss)), train_loss, 'b', label='Training loss')
+    plt.plot(range(len(train_loss)), test_loss, 'r', label='Validation loss')
+    plt.title('Training and Validation loss')
+    plt.xlabel('Epochs ',fontsize=16)
+    plt.ylabel('Loss',fontsize=16)
+    plt.legend()
+    plt.figure()
+    plt.show()
+
+    plt.plot(range(len(train_loss)), train_accuracy, 'b', label='Training Accuracy')
+    plt.plot(range(len(train_loss)), test_accuracy, 'r', label='Validation Accuracy')
+    plt.title('Training and Validation Accuracy')
+    plt.xlabel('Epochs ',fontsize=16)
+    plt.ylabel('Accuracy',fontsize=16)
+    plt.legend()
+    plt.figure()
+    plt.show()
 
 
 
@@ -127,33 +185,41 @@ if __name__ == '__main__':
 
     with open(filename, 'rb') as f:
         X, Y = pickle.load(f)
+    #
+    # X_train, X_test, Y_train, Y_test = split_train_test_data(X, Y, testsize=0.3)
+    # X_test, X_val, Y_test, Y_val = split_train_test_data(X_test, Y_test, testsize=0.5)
 
-    X_train, X_test, Y_train, Y_test = split_train_test_data(X, Y, testsize=0.3)
-    X_test, X_val, Y_test, Y_val = split_train_test_data(X_test, Y_test, testsize=0.5)
-
-    pickled_train = (X_train, Y_train)
-    pickled_val = (X_val, Y_val)
-    pickled_test = (X_test, Y_test)
+    # pickled_train = (X_train, Y_train)
+    # pickled_val = (X_val, Y_val)
+    # pickled_test = (X_test, Y_test)
 
     filename_train = 'face_shape_pickled_train'
-    with open(filename_train, 'wb') as f:
-        pickle.dump(pickled_train, f)
+    # with open(filename_train, 'wb') as f:
+    #     pickle.dump(pickled_train, f)
 
     with open(filename_train, 'rb') as f:
         X_train, Y_train = pickle.load(f)
 
     filename_val = 'face_shape_pickled_val'
-    with open(filename_val, 'wb') as f:
-        pickle.dump(pickled_val, f)
+    # with open(filename_val, 'wb') as f:
+    #     pickle.dump(pickled_val, f)
 
     with open(filename_val, 'rb') as f:
         X_val, Y_val = pickle.load(f)
 
     filename_test = 'face_shape_pickled_test'
-    with open(filename_test, 'wb') as f:
-        pickle.dump(pickled_test, f)
+    # with open(filename_test, 'wb') as f:
+    #     pickle.dump(pickled_test, f)
 
     with open(filename_test, 'rb') as f:
         X_test, Y_test = pickle.load(f)
+
+    weights, biases= allocate_weights_and_biases(5)
+    X_train = X_train.reshape(-1, 68, 2, 1)
+    X_val = X_val.reshape(-1, 68, 2, 1)
+    X1, Y1 = set_placeholders()
+    pred = conv_net(X1, weights, biases)
+    loss_and_optimiser(0.0001, 128, 200, X_train, Y_train, X_val, Y_val, pred, X1, Y1)
+
 
 
