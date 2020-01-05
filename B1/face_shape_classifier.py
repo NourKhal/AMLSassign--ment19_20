@@ -1,6 +1,5 @@
 import argparse
 import os
-import pickle
 import sys
 
 from sklearn.preprocessing import MultiLabelBinarizer
@@ -11,12 +10,10 @@ import tensorflow.compat.v1 as tf
 import tensorflow as tf1
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
-from sklearn.utils import shuffle
 
 os.environ["CUDA_VISIBLE_DEVICES"]="0" #for training on gpu
 from keras.preprocessing import image
 from tqdm import tqdm
-import pandas as pd
 
 
 def load_images(images_dir, face_shape_index, csv_file_path):
@@ -33,14 +30,18 @@ def load_images(images_dir, face_shape_index, csv_file_path):
         image_dict[int(file_name_without_extension)] = img_path
     image_dict = {k: v for k, v in sorted(image_dict.items(), key=lambda item: item[0])}
     for key, img_path in tqdm(image_dict.items()):
-        file_name = img_path.split('.')[1].split('/')[-1]
-        if file_name in img_path:
+        img_num = img_path.split('/')[-1].split('.')[0]
+        if img_num not in face_shape_labels.keys():
+            # print("\tImage '{}' in directory does not exist in CSV file '{}' - skipping...".format(img_num,
+            #                                                                                        csv_file_path))
+            continue
+        if img_num in img_path:
             img = image.img_to_array(
                 image.load_img(img_path,
                                target_size=None))
             if img is not None:
                 image_pixels.append(img)
-                labels.append(face_shape_labels[file_name])
+                labels.append(face_shape_labels[img_num])
 
     image_pixels = np.array(image_pixels)
     labels = np.array(labels)
@@ -52,8 +53,9 @@ def load_images(images_dir, face_shape_index, csv_file_path):
 def split_train_test_data(x, y, testsize):
     return train_test_split(x, y, test_size=testsize)
 
+
 def set_placeholders():
-    X = tf.placeholder(tf.float32, [None, 68, 2,1]) # 68 coordinates of X and Y pairs as the input
+    X = tf.placeholder(tf.float32, [None, 500, 500,3])
     Y = tf.placeholder(tf.float32, [None, 5])
 
     return X, Y
@@ -62,17 +64,17 @@ def set_placeholders():
 def allocate_weights_and_biases(n_classes):
 
     weights = {
-        'wc1': tf.get_variable('w0', shape=(3,3,1,32), initializer=tf1.contrib.layers.xavier_initializer()),
-        'wc2': tf.get_variable('W1', shape=(3,3,32,64), initializer=tf1.contrib.layers.xavier_initializer()),
-        'wc3': tf.get_variable('W2', shape=(3,3,64,128), initializer=tf1.contrib.layers.xavier_initializer()),
-        'wd1': tf.get_variable('W3', shape=(9*1*128,128), initializer=tf1.contrib.layers.xavier_initializer()),
-        'out': tf.get_variable('W6', shape=(128,n_classes), initializer=tf1.contrib.layers.xavier_initializer()),
+        'wc1': tf.get_variable('w0', shape=(3, 3, 3, 32), initializer=tf1.contrib.layers.xavier_initializer()),
+        'wc2': tf.get_variable('W1', shape=(3, 3, 32, 64), initializer=tf1.contrib.layers.xavier_initializer()),
+        'wc3': tf.get_variable('W2', shape=(3, 3, 64, 128), initializer=tf1.contrib.layers.xavier_initializer()),
+        'wd1': tf.get_variable('W3', shape=(63 * 63 * 128, 400), initializer=tf1.contrib.layers.xavier_initializer()),
+        'out': tf.get_variable('W6', shape=(400, n_classes), initializer=tf1.contrib.layers.xavier_initializer()),
     }
     biases = {
         'bc1': tf.get_variable('B0', shape=(32), initializer=tf1.contrib.layers.xavier_initializer()),
         'bc2': tf.get_variable('B1', shape=(64), initializer=tf1.contrib.layers.xavier_initializer()),
         'bc3': tf.get_variable('B2', shape=(128), initializer=tf1.contrib.layers.xavier_initializer()),
-        'bd1': tf.get_variable('B3', shape=(128), initializer=tf1.contrib.layers.xavier_initializer()),
+        'bd1': tf.get_variable('B3', shape=(400), initializer=tf1.contrib.layers.xavier_initializer()),
         'out': tf.get_variable('B4', shape=(5), initializer=tf1.contrib.layers.xavier_initializer()),
     }
 
@@ -201,54 +203,27 @@ if __name__ == '__main__':
                                                                            face_shape_index,
                                                                            preprocessed_data_file))
 
-    labels = pd.read_csv(labels_file, sep='\t')
-    labels = shuffle(labels)
-    labels_train = labels[0:6999]
-    lables_val_test = labels[6999:9999]
-    labels_val = lables_val_test[0:1499]
-    labels_test = lables_val_test[1499:2999]
-    print(labels_train['face_shape'].value_counts())
-    print(labels_val['face_shape'].value_counts())
-    print(labels_test['face_shape'].value_counts())
-    labels_train.to_csv('face_shape_train.csv', sep='\t', index=False)
-    labels_val.to_csv('face_shape_val.csv', sep='\t', index=False)
-    labels_test.to_csv('face_shape_test.csv', sep='\t', index=False)
+
+
+
+
     train_labels_file = 'face_shape_train.csv'
+    X_train, Y_train = load_images(image_directory, face_shape_index, train_labels_file)
 
-    filename = preprocessed_data_file
+    val_labels_file = 'face_shape_val.csv'
+    X_val, Y_val = load_images(image_directory, face_shape_index, val_labels_file)
 
-    # with open(filename, 'wb') as f:
-    #     pickle.dump(pickled, f)
 
-    with open(filename, 'rb') as f:
-        X, Y = pickle.load(f)
+    # test_labels_file = 'face_shape_test.csv'
+    # X_test, Y_test = load_images(image_directory, face_shape_index, test_labels_file)
     #
-    # X_train, X_test, Y_train, Y_test = split_train_test_data(X, Y, testsize=0.3)
-    # X_test, X_val, Y_test, Y_val = split_train_test_data(X_test, Y_test, testsize=0.5)
 
-    # pickled_train = (X_train, Y_train)
-    # pickled_val = (X_val, Y_val)
-    # pickled_test = (X_test, Y_test)
+    X_train = X_train/255
+    X_val = X_val/255
 
-
-
-
-    with open(filename_val, 'rb') as f:
-        X_val, Y_val = pickle.load(f)
-
-    filename_test = 'face_shape_pickled_test'
-    # with open(filename_test, 'wb') as f:
-    #     pickle.dump(pickled_test, f)
-
-    with open(filename_test, 'rb') as f:
-        X_test, Y_test = pickle.load(f)
-
-    weights, biases= allocate_weights_and_biases(5)
-    X_train = X_train.reshape(-1, 68, 2, 1)
-    X_val = X_val.reshape(-1, 68, 2, 1)
     X1, Y1 = set_placeholders()
+    weights, biases= allocate_weights_and_biases(5)
     pred = conv_net(X1, weights, biases)
-    loss_and_optimiser(0.0001, 128, 200, X_train, Y_train, X_val, Y_val, pred, X1, Y1)
-
+    loss_and_optimiser(0.00001, 100, 20, X_train, Y_train, X_val, Y_val, pred, X1, Y1)
 
 
