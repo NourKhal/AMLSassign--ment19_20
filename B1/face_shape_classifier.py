@@ -11,10 +11,12 @@ import tensorflow.compat.v1 as tf
 import tensorflow as tf1
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
+from sklearn.utils import shuffle
 
 os.environ["CUDA_VISIBLE_DEVICES"]="0" #for training on gpu
 from keras.preprocessing import image
 from tqdm import tqdm
+import pandas as pd
 
 
 def load_images(images_dir, face_shape_index, csv_file_path):
@@ -32,12 +34,14 @@ def load_images(images_dir, face_shape_index, csv_file_path):
     image_dict = {k: v for k, v in sorted(image_dict.items(), key=lambda item: item[0])}
     for key, img_path in tqdm(image_dict.items()):
         file_name = img_path.split('.')[1].split('/')[-1]
-        img = image.img_to_array(
-            image.load_img(img_path,
-                           target_size=None))
-        if img is not None:
-            image_pixels.append(img)
-            labels.append(face_shape_labels[file_name])
+        if file_name in img_path:
+            img = image.img_to_array(
+                image.load_img(img_path,
+                               target_size=None))
+            if img is not None:
+                image_pixels.append(img)
+                labels.append(face_shape_labels[file_name])
+
     image_pixels = np.array(image_pixels)
     labels = np.array(labels)
     labels = np.array([labels]).T
