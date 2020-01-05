@@ -201,7 +201,19 @@ if __name__ == '__main__':
                                                                            face_shape_index,
                                                                            preprocessed_data_file))
 
-    images, labels = load_images(image_directory, face_shape_index, labels_file)
+    labels = pd.read_csv(labels_file, sep='\t')
+    labels = shuffle(labels)
+    labels_train = labels[0:6999]
+    lables_val_test = labels[6999:9999]
+    labels_val = lables_val_test[0:1499]
+    labels_test = lables_val_test[1499:2999]
+    print(labels_train['face_shape'].value_counts())
+    print(labels_val['face_shape'].value_counts())
+    print(labels_test['face_shape'].value_counts())
+    labels_train.to_csv('face_shape_train.csv', sep='\t', index=False)
+    labels_val.to_csv('face_shape_val.csv', sep='\t', index=False)
+    labels_test.to_csv('face_shape_test.csv', sep='\t', index=False)
+    train_labels_file = 'face_shape_train.csv'
 
     filename = preprocessed_data_file
 
