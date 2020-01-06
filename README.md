@@ -20,7 +20,7 @@ Miniconda was installed - the path can be found by opening Anaconda prompt and r
 - Miniconda comes with virtual environment management so ignore the brew installations above, proceed to Section 2 and
 follow Windows specific requirements.
 
-#### 2 - Set up a Python virtual environment (from the root of the data synthesis directory)
+#### 2 - Set up a Python virtual environment (from the root of the AMLS directory)
         virtualenv -p python3.6 AMLS-venv
         source AMLS-venv/bin/activate
 
