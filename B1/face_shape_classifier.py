@@ -208,8 +208,8 @@ if __name__ == '__main__':
     test_labels_file = 'face_shape_test.csv'
     X_test, Y_test = load_images(image_directory, face_shape_index, test_labels_file)
 
-    X_train = X_train/255
-    X_val = X_val/255
+    X_train = (X_train - np.min(X_train))/ (np.max(X_train) - np.min(X_train))
+    X_val = (X_val - np.min(X_val)) / (np.max(X_val) - np.min(X_val))
 
     X1, Y1 = set_placeholders()
     weights, biases= allocate_weights_and_biases(5)
