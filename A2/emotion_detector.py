@@ -1,15 +1,14 @@
 import argparse
 import pickle
 
+import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf1
 import tensorflow.compat.v1 as tf
 from sklearn.model_selection import train_test_split
-import matplotlib.pyplot as plt
-from tempfile import TemporaryFile
+
 import A1.lab2_landmarks as l2
-import seaborn as sns
-from sklearn.metrics import classification_report
+
 
 def transform_images_to_features_data(csv_file_path, smiling_column_index, image_dir, face_landmarks_path):
 
@@ -174,24 +173,10 @@ if __name__ == '__main__':
                                                                            emotion_index,
                                                                            preprocessed_data_file))
 
-    # X, Y = transform_images_to_features_data(labels_file, emotion_index, image_directory, landmarks_file)
-    # x_y = list(zip(X, Y))
-
-    # pickled = (X, Y)
     filename = preprocessed_data_file
-
-    # with open(filename, 'wb') as f:
-    #     pickle.dump(pickled, f)
 
     with open(filename, 'rb') as f:
         X, Y = pickle.load(f)
-
-    # X_train, X_test, Y_train, Y_test = split_train_test_data(X, Y, testsize=0.3)
-    # X_test, X_val, Y_test, Y_val = split_train_test_data(X_test, Y_test, testsize=0.5)
-
-    # pickled_train = (X_train, Y_train)
-    # pickled_val = (X_val, Y_val)
-    # pickled_test = (X_test, Y_test)
 
     filename_train = 'pickled_train'
     with open(filename_train, 'rb') as f:
