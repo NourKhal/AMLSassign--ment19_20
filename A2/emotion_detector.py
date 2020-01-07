@@ -8,7 +8,8 @@ from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 from tempfile import TemporaryFile
 import A1.lab2_landmarks as l2
-
+import seaborn as sns
+from sklearn.metrics import classification_report
 
 def transform_images_to_features_data(csv_file_path, smiling_column_index, image_dir, face_landmarks_path):
 
@@ -21,7 +22,7 @@ def split_train_test_data(x, y, testsize):
     return train_test_split(x, y, test_size=testsize)
 
 
-def allocate_weights_and_biases(stddev, neurons_layer1, neurons_layer2):
+def allocate_weights_and_biases(stddev, neurons_layer1, neurons_layer2, neurons_layer3):
 
     ## Set the input data as placeholders to be used later when building the computational graph
     # i.e create a place in memory to store the value later on
@@ -38,24 +39,26 @@ def allocate_weights_and_biases(stddev, neurons_layer1, neurons_layer2):
         # tensor of the specified shape '[68 * 2, neurons_layer1]' filled with random normal values. Similarly, for
         # 'hidden_layer2' and 'out'
         'hidden_layer2': tf.Variable(tf.random_normal([neurons_layer1, neurons_layer2], stddev=stddev)),
-        'out': tf.Variable(tf.random_normal([neurons_layer2, 2], stddev=stddev))
+        'hidden_layer3': tf.Variable(tf.random_normal([neurons_layer2, neurons_layer3], stddev=stddev)),
+        'out': tf.Variable(tf.random_normal([neurons_layer3, 2], stddev=stddev))
     }
 
     ## Initialise and set the biases of the different layers of the MLP
     biases = {
         'bias_layer1': tf.Variable(tf.random_normal([neurons_layer1], stddev=stddev)),
         'bias_layer2': tf.Variable(tf.random_normal([neurons_layer2], stddev=stddev)),
+        'bias_layer3': tf.Variable(tf.random_normal([neurons_layer3], stddev=stddev)),
         'out': tf.Variable(tf.random_normal([2], stddev=stddev))
     }
 
     return weights, biases, X, Y, images_flat
 
 
-def build_multilayer_perceptron(stddev, neurons_layer1, neurons_layer2):
+def build_multilayer_perceptron(stddev, neurons_layer1, neurons_layer2, neurons_layer3):
 
-    weights, biases, X, Y, images_flat = allocate_weights_and_biases(stddev, neurons_layer1, neurons_layer2)
+    weights, biases, X, Y, images_flat = allocate_weights_and_biases(stddev, neurons_layer1, neurons_layer2, neurons_layer3)
 
-    # Return a tensor of the sum of weighted matrix and the biases of the first layer
+# Return a tensor of the sum of weighted matrix and the biases of the first layer
     layer_1 = tf.add(tf.matmul(images_flat, weights['hidden_layer1']), biases['bias_layer1'])
     layer_1 = tf.math.sigmoid(layer_1)
 
@@ -63,8 +66,11 @@ def build_multilayer_perceptron(stddev, neurons_layer1, neurons_layer2):
     layer_2 = tf.add(tf.matmul(layer_1, weights['hidden_layer2']), biases['bias_layer2'])
     layer_2 = tf.math.sigmoid(layer_2)
 
+    layer_3 = tf.add(tf.matmul(layer_2, weights['hidden_layer3']), biases['bias_layer3'])
+    layer_3 = tf.math.sigmoid(layer_3)
+
     # Return a tensor of the sum of weighted matrix and the biases of the outer layer (output)
-    out_layer = tf.add(tf.matmul(layer_2, weights['out']), biases['out'])
+    out_layer = tf.add(tf.matmul(layer_3, weights['out']), biases['out'])
 
     return out_layer, X, Y
 
@@ -77,55 +83,63 @@ def loss_and_optimiser(learning_rate, training_epochs, display_accuracy_step, lo
 
     ## The tf.reduce_mean(tensor) will return a reduce tensor with mean of each element in the tensor
     loss_op = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=Y))
-    optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
+    optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate) #backpropagation
     train_op = optimizer.minimize(loss_op) #
 
     init = tf.global_variables_initializer()
 
-    epoch_cost_plot = []
-    cost = []
-    epoch_validation_plot = []
-    validation = []
     with tf.Session() as sess:
-
+        train_loss = []
+        test_loss = []
+        train_accuracy = []
+        test_accuracy = []
         sess.run(init)
         for epoch in range(training_epochs):
-            _, cost = sess.run([train_op, loss_op], feed_dict={X: training_images,
-                                                               Y: training_labels})
-            epoch_cost_plot.append(epoch+1)
-            cost.append(cost)
+            _, train_cost = sess.run([train_op, loss_op], feed_dict={X: training_images, Y: training_labels})
+            _, val_cost = sess.run([train_op, loss_op], feed_dict={X: test_images, Y: test_labels})
 
-            print("Epoch:", '%04d' % (epoch + 1), "cost={:.9f}".format(cost))
+            train_loss.append(train_cost)
+            test_loss.append(val_cost)
+
+            print("Epoch:", '%04d' % (epoch + 1), "training cost={:.9f}".format(train_cost))
+            print("Epoch:", '%04d' % (epoch + 1), "validation cost={:.9f}".format(val_cost))
 
             if epoch % display_accuracy_step == 0:
                 pred = tf.nn.softmax(logits)
                 correct_prediction = tf.equal(tf.argmax(pred, 1), tf.argmax(Y, 1))
                 accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
                 current_accuracy = accuracy.eval({X: training_images, Y: training_labels})
-                epoch_validation_plot.append(epoch)
-                validation.append( current_accuracy* 100)
+                validation_accuracy = accuracy.eval({X: test_images, Y: test_labels})
+                train_accuracy.append(current_accuracy)
+                test_accuracy.append(validation_accuracy)
+
                 print("Training Accuracy: {:.3f}".format(accuracy.eval({X: training_images, Y: training_labels})))
+                print("Test Accuracy: {:.3f}".format(accuracy.eval({X: test_images, Y: test_labels})))
 
         print("Optimization Task Completed!")
         pred = tf.nn.softmax(logits)
         correct_prediction = tf.equal(tf.argmax(pred, 1), tf.argmax(Y, 1))
         accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
 
-        print("Validation Accuracy:", accuracy.eval({X: test_images, Y: test_labels}))
-
-        # Plot results
-        plt.figure(1)
-        plt.subplot(211)
-        plt.plot(epoch_cost_plot, cost)
-        plt.xlabel('Epoch')
-        plt.ylabel('Cost/Error')
-        plt.axis([0, epoch_cost_plot[-1], 0, 1])
-
-        plt.subplot(212)
-        plt.plot(epoch_validation_plot, validation)
-        plt.xlabel('Epoch')
-        plt.ylabel('Accuracy (%)')
+        print("Test Accuracy:", accuracy.eval({X: test_images, Y: test_labels}))
+        plt.plot(range(len(train_loss)), train_loss, 'b', label='Training loss')
+        plt.plot(range(len(train_loss)), test_loss, 'r', label='Test loss')
+        plt.title('Training and Test loss')
+        plt.xlabel('Epochs ',fontsize=16)
+        plt.ylabel('Loss',fontsize=16)
+        plt.legend()
+        plt.figure()
         plt.show()
+
+        plt.plot(range(len(train_accuracy)), train_accuracy, 'b', label='Training Accuracy')
+        plt.plot(range(len(test_accuracy)), test_accuracy, 'r', label='Test Accuracy')
+        plt.title('Training and Test Accuracy')
+        plt.xlabel('Epochs ',fontsize=16)
+        plt.ylabel('Accuracy',fontsize=16)
+        plt.legend()
+        plt.figure()
+        plt.show()
+
 
 
 if __name__ == '__main__':
@@ -191,6 +205,8 @@ if __name__ == '__main__':
     with open(filename_test, 'rb') as f:
         X_test, Y_test = pickle.load(f)
 
-    logits, X, Y = build_multilayer_perceptron(0.01, 100, 100)
-    loss_and_optimiser(0.001, 500, 2, logits, X_train, Y_train, X_val, Y_val)
+    logits, X, Y = build_multilayer_perceptron(0.01, 500, 250, 125)
+    loss_and_optimiser(0.0001, 600, 2, logits, X_train, Y_train, X_test, Y_test)
+
+
 
