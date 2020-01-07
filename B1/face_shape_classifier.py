@@ -199,18 +199,13 @@ if __name__ == '__main__':
                                                                            face_shape_index,
                                                                            preprocessed_data_file))
 
-
-
-
-
-    train_labels_file = 'eye_color_train.csv'
+    train_labels_file = 'face_shape_train.csv'
     X_train, Y_train = load_images(image_directory, face_shape_index, train_labels_file)
 
-    val_labels_file = 'eye_color_val.csv'
+    val_labels_file = 'face_shape_val.csv'
     X_val, Y_val = load_images(image_directory, face_shape_index, val_labels_file)
 
-
-    test_labels_file = 'eye_color_test.csv'
+    test_labels_file = 'face_shape_test.csv'
     X_test, Y_test = load_images(image_directory, face_shape_index, test_labels_file)
 
     X_train = X_train/255
