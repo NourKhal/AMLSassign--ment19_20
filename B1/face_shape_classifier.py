@@ -214,6 +214,6 @@ if __name__ == '__main__':
     X1, Y1 = set_placeholders()
     weights, biases= allocate_weights_and_biases(5)
     pred = conv_net(X1, weights, biases)
-    loss_and_optimiser(0.0001, 90, 15, X_train, Y_train, X_val, Y_val, pred, X1, Y1)
+    loss_and_optimiser(0.0001, 90, 15, X_train, Y_train, X_test, Y_test, pred, X1, Y1)
 
 
