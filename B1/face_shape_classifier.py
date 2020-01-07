@@ -9,7 +9,6 @@ import numpy as np
 import tensorflow.compat.v1 as tf
 import tensorflow as tf1
 import matplotlib.pyplot as plt
-from sklearn.model_selection import train_test_split
 
 os.environ["CUDA_VISIBLE_DEVICES"]="0" #for training on gpu
 from keras.preprocessing import image
@@ -49,9 +48,6 @@ def load_images(images_dir, face_shape_index, csv_file_path):
     labels = MultiLabelBinarizer().fit_transform(labels)
     return image_pixels, labels
 
-
-def split_train_test_data(x, y, testsize):
-    return train_test_split(x, y, test_size=testsize)
 
 
 def set_placeholders():
@@ -143,12 +139,12 @@ def loss_and_optimiser(learning_rate, batch_size, epochs, training_images, train
                 print("Iter " + str(i) + ", Loss= " + "{:.6f}".format(loss) + ", Training Accuracy= " + "{:.5f}".format(acc))
                 print("Optimization Finished!")
 
-                test_acc,valid_loss = sess.run([accuracy,cost], feed_dict={X: test_images, Y: test_labels})
+                val_acc,valid_loss = sess.run([accuracy,cost], feed_dict={X: test_images, Y: test_labels})
                 train_loss.append(loss)
                 test_loss.append(valid_loss)
                 train_accuracy.append(acc)
-                test_accuracy.append(test_acc)
-                print("Validation Accuracy:","{:.5f}".format(test_acc))
+                test_accuracy.append(val_acc)
+                print("Validation Accuracy:","{:.5f}".format(val_acc))
     summary_writer.close()
 
     plt.plot(range(len(train_loss)), train_loss, 'b', label='Training loss')
@@ -207,16 +203,15 @@ if __name__ == '__main__':
 
 
 
-    train_labels_file = 'face_shape_train.csv'
+    train_labels_file = 'eye_color_train.csv'
     X_train, Y_train = load_images(image_directory, face_shape_index, train_labels_file)
 
-    val_labels_file = 'face_shape_val.csv'
+    val_labels_file = 'eye_color_val.csv'
     X_val, Y_val = load_images(image_directory, face_shape_index, val_labels_file)
 
 
-    # test_labels_file = 'face_shape_test.csv'
-    # X_test, Y_test = load_images(image_directory, face_shape_index, test_labels_file)
-    #
+    test_labels_file = 'eye_color_test.csv'
+    X_test, Y_test = load_images(image_directory, face_shape_index, test_labels_file)
 
     X_train = X_train/255
     X_val = X_val/255
