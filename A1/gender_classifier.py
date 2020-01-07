@@ -90,18 +90,28 @@ if __name__ == '__main__': ## command J
           " of labels file at {} and face landmarks file at {}. Index of smiling field in the CSV file is"
           " {}".format(image_directory, preprocessed_data_file, labels_file, landmarks_file, gender_index))
 
-    # X, Y = transform_images_to_features_data(labels_file, gender_index, image_directory, landmarks_file)
-    # x_y = list(zip(X, Y))
-    #
-    # pickled = (X, Y)
     filename = preprocessed_data_file
-    #
-    # with open(filename, 'wb') as f:
-    #     pickle.dump(pickled, f)
 
     with open(filename, 'rb') as f:
         X, Y = pickle.load(f)
 
     X_train, X_test, Y_train, Y_test = split_training_test_data(X, Y, 0.3)
     X_test, X_val, Y_test, Y_val = split_training_test_data(X_test, Y_test, 0.5)
-    pred = img_SVM_GS_CV(X_train.reshape((3360, 68*2)), list(zip(*Y_train))[0], X_val.reshape((720, 68*2)), list(zip(*Y_val))[0])
+
+    # pickled_train = (X_train, Y_train)
+    # pickled_val = (X_val, Y_val)
+    # pickled_test = (X_test, Y_test)
+    #
+    # filename_train = 'pickled_train'
+    # with open(filename_train, 'wb') as f:
+    #     pickle.dump(pickled_train, f)
+    #
+    # filename_val = 'pickled_val'
+    # with open(filename_val, 'wb') as f:
+    #     pickle.dump(pickled_val, f)
+    #
+    # filename_test = 'pickled_test'
+    # with open(filename_test, 'wb') as f:
+    #     pickle.dump(pickled_test, f)
+
+    # pred = img_SVM_GS_CV(X_train.reshape((3360, 68*2)), list(zip(*Y_train))[0], X_val.reshape((720, 68*2)), list(zip(*Y_val))[0])
