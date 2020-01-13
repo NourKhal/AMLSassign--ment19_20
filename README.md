@@ -89,33 +89,37 @@ Giving:
         
         -pd --preprocessed-data-file  The path to the preprocessed image data file
         
-Sample Invocation Command to run gender_classifier.py 
-
-python /AMLSassign--ment19_20/A1/gender_classifier.py 
-            -i /AMLSassign--ment19_20/dataset/celeba/img 
-            -l /AMLSassign--ment19_20/dataset/celeba/labels.csv 
-            -s /AMLSassign--ment19_20/A1/shape_predictor_68_face_landmarks.dat 
-            -gi 2 
-            -pd /AMLSassign--ment19_20/A1/preprocessed_celeba_data.pickle
-
-Sample Invocation Command to run emotion_detector.py 
-python /AMLSassign--ment19_20/A2/emotion_detector.py 
-            -i /AMLSassign--ment19_20/dataset/celeba/img 
-            -l /AMLSassign--ment19_20/dataset/celeba/labels.csv 
-            -s /AMLSassign--ment19_20/A1/shape_predictor_68_face_landmarks.dat 
-            -ei 3
-            -pd /AMLSassign--ment19_20/A1/preprocessed_celeba_data.pickle
-
-Sample Invocation Command to run face_shape_classifier.py 
-python /AMLSassign--ment19_20/B1/face_shape_classifier.py 
-            -i /AMLSassign--ment19_20/dataset/cartoon_set/img 
-            -l /AMLSassign--ment19_20/dataset/cartoon_set/labels.csv 
-            -s /AMLSassign--ment19_20/A1/shape_predictor_68_face_landmarks.dat 
-            -fci 2
-       
-Sample Invocation Command to run eye_color_classifier.py 
-python /AMLSassign--ment19_20/B2/eye_color_classifier.py 
-            -i /AMLSassign--ment19_20/dataset/cartoon_set/img 
-            -l /AMLSassign--ment19_20/dataset/cartoon_set/labels.csv 
-            -s /AMLSassign--ment19_20/A1/shape_predictor_68_face_landmarks.dat 
-            -eci 1
+        
+   
+        
+        Sample Invocation Command to run gender_classifier.py 
+        python /AMLSassign--ment19_20/A1/gender_classifier.py 
+                    -i /AMLSassign--ment19_20/dataset/celeba/img 
+                    -l /AMLSassign--ment19_20/dataset/celeba/labels.csv 
+                    -s /AMLSassign--ment19_20/A1/shape_predictor_68_face_landmarks.dat 
+                    -gi 2 
+                    -pd /AMLSassign--ment19_20/A1/preprocessed_celeba_data.pickle
+        
+        Sample Invocation Command to run emotion_detector.py 
+        python /AMLSassign--ment19_20/A2/emotion_detector.py 
+                    -i /AMLSassign--ment19_20/dataset/celeba/img 
+                    -l /AMLSassign--ment19_20/dataset/celeba/labels.csv 
+                    -s /AMLSassign--ment19_20/A1/shape_predictor_68_face_landmarks.dat 
+                    -ei 3
+                    -pd /AMLSassign--ment19_20/A1/preprocessed_celeba_data.pickle
+        
+        Sample Invocation Command to run face_shape_classifier.py 
+        python /AMLSassign--ment19_20/B1/face_shape_classifier.py 
+                    -i /AMLSassign--ment19_20/dataset/cartoon_set/img 
+                    -l /AMLSassign--ment19_20/dataset/cartoon_set/labels.csv 
+                    -s /AMLSassign--ment19_20/A1/shape_predictor_68_face_landmarks.dat 
+                    -fci 2
+               
+        Sample Invocation Command to run eye_color_classifier.py 
+        python /AMLSassign--ment19_20/B2/eye_color_classifier.py 
+                    -i /AMLSassign--ment19_20/dataset/cartoon_set/img 
+                    -l /AMLSassign--ment19_20/dataset/cartoon_set/labels.csv 
+                    -s /AMLSassign--ment19_20/A1/shape_predictor_68_face_landmarks.dat 
+                    -eci 1
+        
+        
