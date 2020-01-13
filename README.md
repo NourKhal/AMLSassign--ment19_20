@@ -40,8 +40,16 @@ For Windows, open cmd and run the following commands, hitting enter after each l
 
 #### 4 - Run the AMLS 
 
-The data file and the build ML models should be downloaded from the following Google Drive link: https://drive.google.com/drive/folders/17ANTXC4wyGfZ9h0fgqzYBspVatDDiqxu
-In the shared drive, there are 4 folders, Task A1, Task A2, Task B1 and Task B2. Each folder contains the task relative model and data files used in tarining and testing the model.
+The data file and the built ML models should be downloaded from the following Google Drive link: https://drive.google.com/drive/folders/17ANTXC4wyGfZ9h0fgqzYBspVatDDiqxu
+In the shared drive, there are 4 folders, Task A1, Task A2, Task B1 and Task B2.
+ Each folder contains the task's relative model files and data files used in tarining and testing the model.
+ 
+Download the model files from the google drive link  and save them in the project directory under the correct task directory to be able to restore the model using 
+the restore_model function in Tasks A2, B1 and B2. 
+ 
+ 
+ 
+ 
 #### 5 - Run the gender_classifier.py, emotion_detector.py, eye_color_classifier.py and face_shape_classifier.py scripts
  separately (from inside the virtual env)
 Giving: 
