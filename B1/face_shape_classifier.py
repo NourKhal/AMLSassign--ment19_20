@@ -9,7 +9,6 @@ import numpy as np
 import tensorflow.compat.v1 as tf
 import tensorflow as tf1
 import matplotlib.pyplot as plt
-
 os.environ["CUDA_VISIBLE_DEVICES"]="0" #for training on gpu
 from keras.preprocessing import image
 from tqdm import tqdm
@@ -63,14 +62,14 @@ def allocate_weights_and_biases(n_classes):
         'wc1': tf.get_variable('w0', shape=(3, 3, 3, 32), initializer=tf1.contrib.layers.xavier_initializer()),
         'wc2': tf.get_variable('W1', shape=(3, 3, 32, 64), initializer=tf1.contrib.layers.xavier_initializer()),
         'wc3': tf.get_variable('W2', shape=(3, 3, 64, 128), initializer=tf1.contrib.layers.xavier_initializer()),
-        'wd1': tf.get_variable('W3', shape=(63 * 63 * 128, 400), initializer=tf1.contrib.layers.xavier_initializer()),
-        'out': tf.get_variable('W6', shape=(400, n_classes), initializer=tf1.contrib.layers.xavier_initializer()),
+        'wd1': tf.get_variable('W3', shape=(63 * 63 * 128, 300), initializer=tf1.contrib.layers.xavier_initializer()),
+        'out': tf.get_variable('W6', shape=(300, n_classes), initializer=tf1.contrib.layers.xavier_initializer()),
     }
     biases = {
         'bc1': tf.get_variable('B0', shape=(32), initializer=tf1.contrib.layers.xavier_initializer()),
         'bc2': tf.get_variable('B1', shape=(64), initializer=tf1.contrib.layers.xavier_initializer()),
         'bc3': tf.get_variable('B2', shape=(128), initializer=tf1.contrib.layers.xavier_initializer()),
-        'bd1': tf.get_variable('B3', shape=(400), initializer=tf1.contrib.layers.xavier_initializer()),
+        'bd1': tf.get_variable('B3', shape=(300), initializer=tf1.contrib.layers.xavier_initializer()),
         'out': tf.get_variable('B4', shape=(5), initializer=tf1.contrib.layers.xavier_initializer()),
     }
 
@@ -85,7 +84,7 @@ def conv2d(x, W, b, strides=1):
 
 
 def maxpool2d(x, k=2):
-    return tf.nn.max_pool(x, ksize=[1, k, k, 1], strides=[1, k, k, 1],padding='SAME')
+    return tf.nn.max_pool(x, ksize=[1, k, k, 1], strides=[1, k, k, 1], padding='SAME')
 
 
 def conv_net(x, weights, biases):
@@ -106,8 +105,8 @@ def conv_net(x, weights, biases):
 
     return out
 
-def loss_and_optimiser(learning_rate, batch_size, epochs, training_images, training_labels,
-                       test_images, test_labels, out, X, Y):
+def loss_calculater_and_optimiser(learning_rate, batch_size, epochs, training_images, training_labels,
+                                  test_images, test_labels, out, X, Y):
 
     cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=out, labels=Y))
     optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)
@@ -120,7 +119,6 @@ def loss_and_optimiser(learning_rate, batch_size, epochs, training_images, train
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
     init = tf.global_variables_initializer()
-
     with tf.Session() as sess:
         sess.run(init)
         train_loss = []
@@ -128,6 +126,7 @@ def loss_and_optimiser(learning_rate, batch_size, epochs, training_images, train
         train_accuracy = []
         test_accuracy = []
         summary_writer = tf.summary.FileWriter('./Output', sess.graph)
+        saver = tf.train.Saver()
         for i in range(epochs):
             for batch in range(len(training_images)//batch_size):
                 batch_x = training_images[batch*batch_size:min((batch+1)*batch_size,len(training_images))]
@@ -145,6 +144,8 @@ def loss_and_optimiser(learning_rate, batch_size, epochs, training_images, train
                 train_accuracy.append(acc)
                 test_accuracy.append(val_acc)
                 print("Validation Accuracy:","{:.5f}".format(val_acc))
+                tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES)
+        saver.save(sess, 'face-shape-classifier-model1')
     summary_writer.close()
 
     plt.plot(range(len(train_loss)), train_loss, 'b', label='Training loss')
@@ -166,6 +167,20 @@ def loss_and_optimiser(learning_rate, batch_size, epochs, training_images, train
     plt.show()
 
 
+def restore_model(X_test, Y_test):
+    sess = tf.Session()
+    saver = tf.train.import_meta_graph('face-shape-classifier-model.meta')
+    saver.restore(sess, tf.train.latest_checkpoint('./'))
+    graph = tf.get_default_graph()
+    pred = graph.get_tensor_by_name("accuracy:0")
+    x = graph.get_tensor_by_name("X:0")
+    y_true = graph.get_tensor_by_name("Y:0")
+    X_test = (X_test - np.min(X_test))/ (np.max(X_test) - np.min(X_test))
+    feed_dict_testing = {x: X_test, y_true: Y_test}
+    result=sess.run(pred, feed_dict=feed_dict_testing)
+    print(result)
+
+
 
 if __name__ == '__main__':
 
@@ -183,9 +198,7 @@ if __name__ == '__main__':
                             help='the index of the face shape column in the labels.csv file',
                             required=True,
                             type=int)
-    arg_parser.add_argument('-pd', '--preprocessed-data-file',
-                            help='the path to the preprocessed image data file',
-                            required=True)
+
 
     args = vars(arg_parser.parse_args())
     image_directory = args['img_dir']
@@ -195,9 +208,7 @@ if __name__ == '__main__':
     preprocessed_data_file = args['preprocessed_data_file']
     print("Building face shape classification model from images in {},"
           " using labels file at {} and face landmarks file at {}. Index of face shape field in the CSV file is"
-          " {}. The image features are written to a pickle file {}".format(image_directory,labels_file, landmarks_file,
-                                                                           face_shape_index,
-                                                                           preprocessed_data_file))
+          " {}.".format(image_directory,labels_file, landmarks_file, face_shape_index))
 
     train_labels_file = 'face_shape_train.csv'
     X_train, Y_train = load_images(image_directory, face_shape_index, train_labels_file)
@@ -210,10 +221,10 @@ if __name__ == '__main__':
 
     X_train = (X_train - np.min(X_train))/ (np.max(X_train) - np.min(X_train))
     X_val = (X_val - np.min(X_val)) / (np.max(X_val) - np.min(X_val))
-
     X1, Y1 = set_placeholders()
     weights, biases= allocate_weights_and_biases(5)
     pred = conv_net(X1, weights, biases)
-    loss_and_optimiser(0.0001, 90, 15, X_train, Y_train, X_test, Y_test, pred, X1, Y1)
+    loss_calculater_and_optimiser(0.0001, 90, 15, X_train, Y_train, X_val, Y_val, pred, X1, Y1)
 
+    restore_model(X_test, Y_test)
 
