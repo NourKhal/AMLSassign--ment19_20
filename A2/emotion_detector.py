@@ -10,6 +10,7 @@ from sklearn.model_selection import train_test_split
 import A1.lab2_landmarks as l2
 
 
+# extract images feature i.e. facelandmarks
 def transform_images_to_features_data(csv_file_path, smiling_column_index, image_dir, face_landmarks_path):
 
     X, y = l2.extract_features_labels(csv_file_path, smiling_column_index, image_dir, face_landmarks_path)
@@ -25,10 +26,10 @@ def allocate_weights_and_biases(stddev, neurons_layer1, neurons_layer2, neurons_
 
     ## Set the input data as placeholders to be used later when building the computational graph
     # i.e create a place in memory to store the value later on
-    X = tf.placeholder("float", [None, 68, 2]) # 68 coordinates of X and Y pairs as the input
-    Y = tf.placeholder("float", [None, 2]) # 2 ouputs since we have binary classification (0 or 1)
+    X = tf.placeholder("float", [None, 68, 2], name='X') # 68 coordinates of X and Y pairs as the input
+    Y = tf.placeholder("float", [None, 2], name='Y') # 2 ouputs since we have binary classification (0 or 1)
 
-    # Reshape the image matrix features into one vector
+    # Reshape the image features matrix into one vector
     images_flat = tf1.contrib.layers.flatten(X)
 
     ## Initialise and set the weights of the different layers of the MLP
@@ -56,7 +57,6 @@ def allocate_weights_and_biases(stddev, neurons_layer1, neurons_layer2, neurons_
 def build_multilayer_perceptron(stddev, neurons_layer1, neurons_layer2, neurons_layer3):
 
     weights, biases, X, Y, images_flat = allocate_weights_and_biases(stddev, neurons_layer1, neurons_layer2, neurons_layer3)
-
 # Return a tensor of the sum of weighted matrix and the biases of the first layer
     layer_1 = tf.add(tf.matmul(images_flat, weights['hidden_layer1']), biases['bias_layer1'])
     layer_1 = tf.math.sigmoid(layer_1)
@@ -70,12 +70,11 @@ def build_multilayer_perceptron(stddev, neurons_layer1, neurons_layer2, neurons_
 
     # Return a tensor of the sum of weighted matrix and the biases of the outer layer (output)
     out_layer = tf.add(tf.matmul(layer_3, weights['out']), biases['out'])
-
     return out_layer, X, Y
 
 
-def loss_and_optimiser(learning_rate, training_epochs, display_accuracy_step, logits, training_images, training_labels,
-                       test_images, test_labels):
+def loss_calculator_and_optimiser(learning_rate, training_epochs, display_accuracy_step, logits, training_images, training_labels,
+                                  test_images, test_labels):
     """Softmax takes a vector of real-valued arguments and transforms it to a vector whose elements fall in the range (0, 1) and sum to 1
     i.e measures the probability error in discrete classification tasks in which the classes are mutually exclusive.
     this function will return a tensor that contains the softmax cross entropy loss"""
@@ -88,11 +87,14 @@ def loss_and_optimiser(learning_rate, training_epochs, display_accuracy_step, lo
     init = tf.global_variables_initializer()
 
     with tf.Session() as sess:
+
         train_loss = []
         test_loss = []
         train_accuracy = []
         test_accuracy = []
         sess.run(init)
+        summary_writer = tf.summary.FileWriter('./Output1', sess.graph)
+        saver = tf.train.Saver()
         for epoch in range(training_epochs):
             _, train_cost = sess.run([train_op, loss_op], feed_dict={X: training_images, Y: training_labels})
             _, val_cost = sess.run([train_op, loss_op], feed_dict={X: test_images, Y: test_labels})
@@ -116,9 +118,10 @@ def loss_and_optimiser(learning_rate, training_epochs, display_accuracy_step, lo
                 print("Test Accuracy: {:.3f}".format(accuracy.eval({X: test_images, Y: test_labels})))
 
         print("Optimization Task Completed!")
-        pred = tf.nn.softmax(logits)
+        pred = tf.nn.softmax(logits, name='pred')
         correct_prediction = tf.equal(tf.argmax(pred, 1), tf.argmax(Y, 1))
-        accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
+        accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"), name='accuracy')
+        saver.save(sess, 'emotion-detector-model1')
 
         print("Test Accuracy:", accuracy.eval({X: test_images, Y: test_labels}))
         plt.plot(range(len(train_loss)), train_loss, 'b', label='Training loss')
@@ -138,6 +141,20 @@ def loss_and_optimiser(learning_rate, training_epochs, display_accuracy_step, lo
         plt.legend()
         plt.figure()
         plt.show()
+    summary_writer.close()
+
+def restore_model(X_test, Y_test):
+    sess = tf.Session()
+    saver = tf.train.import_meta_graph('emotion-detector-model1.meta')
+    saver.restore(sess, tf.train.latest_checkpoint('./'))
+    graph = tf.get_default_graph()
+    pred = graph.get_tensor_by_name("accuracy:0")
+    x= graph.get_tensor_by_name("X:0")
+    y_true = graph.get_tensor_by_name("Y:0")
+    X_test = (X_test - np.min(X_test))/ (np.max(X_test) - np.min(X_test))
+    feed_dict_testing = {x: X_test, y_true: Y_test}
+    result=sess.run(pred, feed_dict=feed_dict_testing)
+    print(result)
 
 
 
@@ -174,7 +191,6 @@ if __name__ == '__main__':
                                                                            preprocessed_data_file))
 
     filename = preprocessed_data_file
-
     with open(filename, 'rb') as f:
         X, Y = pickle.load(f)
 
@@ -189,9 +205,8 @@ if __name__ == '__main__':
     filename_test = 'pickled_test'
     with open(filename_test, 'rb') as f:
         X_test, Y_test = pickle.load(f)
-
+    #
     logits, X, Y = build_multilayer_perceptron(0.01, 500, 250, 125)
-    loss_and_optimiser(0.0001, 600, 2, logits, X_train, Y_train, X_test, Y_test)
+    loss_calculator_and_optimiser(0.0001, 600, 2, logits, X_train, Y_train, X_test, Y_test)
 
-
-
+    restore_model(X_test, Y_test)
