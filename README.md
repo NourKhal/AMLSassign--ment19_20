@@ -44,15 +44,15 @@ The data file and the built ML models should be downloaded from the following Go
 In the shared drive, there are 4 folders, Task A1, Task A2, Task B1 and Task B2.
  Each folder contains the task's relative model files and data files used in tarining and testing the model.
  
-- To restor the eye color classifier model in emotion_detector.py script: 
+- To restore the eye color classifier model in emotion_detector.py script: 
 cd into A2 directory and download the files in the following link https://drive.google.com/drive/folders/1ieqx-dwiG6Afb7u1Fz-8o15UthEWnntb to be able to restore the model using 
 the restore_model function.
 
-- To restor the face shape classifier model in face_shape_classifier.py script: 
+- To restore the face shape classifier model in face_shape_classifier.py script: 
 cd into B1 directory and download the files in the following link https://drive.google.com/drive/folders/1zsKGr5qfDgwTTkPD356SbmniAOFXWgk6 to be able to restore the model using 
 the restore_model function.
 
--To restor the eye color classifier model in eye_color_classifier.py script: 
+- To restore the eye color classifier model in eye_color_classifier.py script: 
 cd into B2 directory and download the files in the following link https://drive.google.com/drive/folders/1n5bGTqf_gIT2ybXMpL4i3XMtzE461jr- to be able to restore the model using 
 the restore_model function.
  
