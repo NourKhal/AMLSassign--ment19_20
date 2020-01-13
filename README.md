@@ -71,5 +71,8 @@ Giving:
         
         -pd --preprocessed-data-file  The path to the preprocessed image data file
         
-        
+Sample Invocation Command
+
+/Users/nour.khaled/PycharmProjects/AMLSassign--ment19_20/A2-venv/bin/python /Users/nour.khaled/PycharmProjects/AMLSassign--ment19_20/A1/gender_classifier.py -i /Users/nour.khaled/PycharmProjects/AMLSassign--ment19_20/dataset/celeba/img -l /Users/nour.khaled/PycharmProjects/AMLSassign--ment19_20/dataset/celeba/labels.csv -s /Users/nour.khaled/PycharmProjects/AMLSassign--ment19_20/A1/shape_predictor_68_face_landmarks.dat -gi 2 -pd /Users/nour.khaled/PycharmProjects/AMLSassign--ment19_20/A1/preprocessed_celeba_data.pickle
+
       
