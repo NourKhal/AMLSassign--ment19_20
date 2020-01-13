@@ -56,6 +56,17 @@ the restore_model function.
 cd into B2 directory and download the files in the following link https://drive.google.com/drive/folders/1n5bGTqf_gIT2ybXMpL4i3XMtzE461jr- to be able to restore the model using 
 the restore_model function.
  
+- To download the data files for the gender_classifier.py:
+cd into A1 directory and download the files in the following link https://drive.google.com/drive/folders/1cu7LevbtCEgzQGJObWihsqFyKILuNKFF
+
+- To download the data files for the emotion_detector.py:
+cd into A2 directory and download the files in the following link https://drive.google.com/drive/folders/1f_N0tuAciofBYf4caaisiZhPvxgaVIVo
+
+- To download the data files for the face_shape_classifier.py:
+cd into B1 directory and download the files in the following link https://drive.google.com/drive/folders/17LkPnOFiWFXbDNGxgVlH_5HJP7JQ71Oj
+
+- To download the data files for the eye_color_classifier.py:
+cd into B2 directory and download the files in the following link https://drive.google.com/drive/folders/1zdQA7nFDpTbElyP5Y6DYYfhugglHJoEV
  
  
  
