@@ -9,8 +9,6 @@ import numpy as np
 import tensorflow.compat.v1 as tf
 import matplotlib.pyplot as plt
 import tensorflow as tf1
-import pandas as pd
-from sklearn.utils import shuffle
 from tqdm import tqdm
 from keras.preprocessing import image
 
@@ -117,13 +115,13 @@ def conv_net(x, weights, biases):
     return out
 
 
-def loss_and_optimiser(learning_rate, batch_size, epochs, training_images, training_labels,
-                       test_images, test_labels, out, X, Y):
+def loss_calculator_and_optimiser(learning_rate, batch_size, epochs, training_images, training_labels,
+                                  test_images, test_labels, out, X, Y):
 
     cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=out, labels=Y))
     optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)
 
-    # Here you check whether the index of the maximum value of the predicted image is equal to the actual
+    # Check whether the index of the maximum value of the predicted image is equal to the actual
     # labelled image and both will be a column vector.
     correct_prediction = tf.equal(tf.argmax(out, 1), tf.argmax(Y, 1))
 
@@ -176,6 +174,19 @@ def loss_and_optimiser(learning_rate, batch_size, epochs, training_images, train
     plt.figure()
     plt.show()
 
+# restore the trained model graph and weights
+def restore_model(X_test, Y_test):
+    sess = tf.Session()
+    saver = tf.train.import_meta_graph('eye-color-classifier-model2.meta')
+    saver.restore(sess, tf.train.latest_checkpoint('./'))
+    graph = tf.get_default_graph()
+    pred = graph.get_tensor_by_name("accuracy:0")
+    x = graph.get_tensor_by_name("X:0")
+    y_true = graph.get_tensor_by_name("Y:0")
+    X_test = (X_test - np.min(X_test))/ (np.max(X_test) - np.min(X_test))
+    feed_dict_testing = {x: X_test, y_true: Y_test}
+    result = sess.run(pred, feed_dict=feed_dict_testing)
+    print(result)
 
 
 if __name__ == '__main__':
@@ -194,36 +205,32 @@ if __name__ == '__main__':
                             help='the index of the eye color column in the labels.csv file',
                             required=True,
                             type=int)
-    arg_parser.add_argument('-pd', '--preprocessed-data-file',
-                            help='the path to the preprocessed image data file',
-                            required=True)
+
 
     args = vars(arg_parser.parse_args())
     image_directory = args['img_dir']
     labels_file = args['labels_file']
     landmarks_file = args['landmarks_file']
     eye_color_index = args['eye_color_index']
-    preprocessed_data_file = args['preprocessed_data_file']
     print("Building eye color classification model from images in {},"
           " using labels file at {} and face landmarks file at {}. Index of eye color field in the CSV file is"
-          " {}. The image features are written to a pickle file {}".format(image_directory, labels_file, landmarks_file,
-                                                                           eye_color_index,
-                                                                           preprocessed_data_file))
+          " {}. ".format(image_directory, labels_file, landmarks_file, eye_color_index))
 
-
-    labels = pd.read_csv(labels_file, sep='\t')
-    labels = shuffle(labels)
-    labels_train = labels[0:6999]
-    lables_val_test = labels[6999:9999]
-    labels_val = lables_val_test[0:1499]
-    labels_test = lables_val_test[1499:2999]
-    print(labels_train['face_shape'].value_counts())
-    print(labels_val['face_shape'].value_counts())
-    print(labels_test['face_shape'].value_counts())
-    labels_train.to_csv('eye_color_train.csv', sep='\t', index=False)
-    labels_val.to_csv('eye_color_val.csv', sep='\t', index=False)
-    labels_test.to_csv('eye_color_test.csv', sep='\t', index=False)
     train_labels_file = 'eye_color_train.csv'
+    X_train, Y_train = load_images(image_directory, eye_color_index, train_labels_file)
 
+    val_labels_file = 'eye_color_val.csv'
+    X_val, Y_val = load_images(image_directory, eye_color_index, val_labels_file)
 
+    test_labels_file = 'eye_color_test.csv'
+    X_test, Y_test = load_images(image_directory, eye_color_index, labels_file)
 
+    X_train = (X_train - np.min(X_train))/ (np.max(X_train) - np.min(X_train))
+    X_val = (X_val - np.min(X_val)) / (np.max(X_val) - np.min(X_val))
+
+    X1, Y1 = set_placeholders()
+    weights, biases= allocate_weights_and_biases(5)
+    pred = conv_net(X1, weights, biases)
+    loss_calculator_and_optimiser(0.0001, 200, 10, X_train, Y_train, X_val, Y_val, pred, X1, Y1)
+
+    restore_model(X_test, Y_test)
