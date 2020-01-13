@@ -44,13 +44,23 @@ The data file and the built ML models should be downloaded from the following Go
 In the shared drive, there are 4 folders, Task A1, Task A2, Task B1 and Task B2.
  Each folder contains the task's relative model files and data files used in tarining and testing the model.
  
-Download the model files from the google drive link  and save them in the project directory under the correct task directory to be able to restore the model using 
-the restore_model function in Tasks A2, B1 and B2. 
+- To restor the eye color classifier model in emotion_detector.py script: 
+cd into A2 directory and download the files in the following link https://drive.google.com/drive/folders/1ieqx-dwiG6Afb7u1Fz-8o15UthEWnntb to be able to restore the model using 
+the restore_model function.
+
+- To restor the face shape classifier model in face_shape_classifier.py script: 
+cd into B1 directory and download the files in the following link https://drive.google.com/drive/folders/1zsKGr5qfDgwTTkPD356SbmniAOFXWgk6 to be able to restore the model using 
+the restore_model function.
+
+-To restor the eye color classifier model in eye_color_classifier.py script: 
+cd into B2 directory and download the files in the following link https://drive.google.com/drive/folders/1n5bGTqf_gIT2ybXMpL4i3XMtzE461jr- to be able to restore the model using 
+the restore_model function.
  
  
  
  
-#### 5 - Run the gender_classifier.py, emotion_detector.py, eye_color_classifier.py and face_shape_classifier.py scripts
+#### 5 - Each script is invocable individually in the command line. Follow the sample command line to run the scripts.
+Run the gender_classifier.py, emotion_detector.py, eye_color_classifier.py and face_shape_classifier.py scripts
  separately (from inside the virtual env)
 Giving: 
 
@@ -79,8 +89,13 @@ Giving:
         
         -pd --preprocessed-data-file  The path to the preprocessed image data file
         
-Sample Invocation Command
+Sample Invocation Command to run gender_classifier.py 
 
-/Users/nour.khaled/PycharmProjects/AMLSassign--ment19_20/A2-venv/bin/python /Users/nour.khaled/PycharmProjects/AMLSassign--ment19_20/A1/gender_classifier.py -i /Users/nour.khaled/PycharmProjects/AMLSassign--ment19_20/dataset/celeba/img -l /Users/nour.khaled/PycharmProjects/AMLSassign--ment19_20/dataset/celeba/labels.csv -s /Users/nour.khaled/PycharmProjects/AMLSassign--ment19_20/A1/shape_predictor_68_face_landmarks.dat -gi 2 -pd /Users/nour.khaled/PycharmProjects/AMLSassign--ment19_20/A1/preprocessed_celeba_data.pickle
+python /AMLSassign--ment19_20/A1/gender_classifier.py 
+            -i /AMLSassign--ment19_20/dataset/celeba/img 
+            -l /AMLSassign--ment19_20/dataset/celeba/labels.csv 
+            -s /AMLSassign--ment19_20/A1/shape_predictor_68_face_landmarks.dat 
+            -gi 2 
+            -pd /AMLSassign--ment19_20/A1/preprocessed_celeba_data.pickle
 
       
