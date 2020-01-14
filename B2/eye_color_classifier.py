@@ -60,7 +60,7 @@ def allocate_weights_and_biases(n_classes):
         'wc1': tf.get_variable('w0', shape=(3,3,1,32), initializer=tf1.contrib.layers.xavier_initializer()),
         'wc2': tf.get_variable('W1', shape=(3,3,32,64), initializer=tf1.contrib.layers.xavier_initializer()),
         'wc3': tf.get_variable('W2', shape=(3,3,64,128), initializer=tf1.contrib.layers.xavier_initializer()),
-        'wd1': tf.get_variable('W3', shape=(9*1*128,128), initializer=tf1.contrib.layers.xavier_initializer()),
+        'wd1': tf.get_variable('W3', shape=(63*63*128,350), initializer=tf1.contrib.layers.xavier_initializer()),
         'out': tf.get_variable('W6', shape=(128,n_classes), initializer=tf1.contrib.layers.xavier_initializer()),
     }
 
@@ -68,7 +68,7 @@ def allocate_weights_and_biases(n_classes):
         'bc1': tf.get_variable('B0', shape=(32), initializer=tf1.contrib.layers.xavier_initializer()),
         'bc2': tf.get_variable('B1', shape=(64), initializer=tf1.contrib.layers.xavier_initializer()),
         'bc3': tf.get_variable('B2', shape=(128), initializer=tf1.contrib.layers.xavier_initializer()),
-        'bd1': tf.get_variable('B3', shape=(128), initializer=tf1.contrib.layers.xavier_initializer()),
+        'bd1': tf.get_variable('B3', shape=(350), initializer=tf1.contrib.layers.xavier_initializer()),
         'out': tf.get_variable('B4', shape=(5), initializer=tf1.contrib.layers.xavier_initializer()),
     }
 
